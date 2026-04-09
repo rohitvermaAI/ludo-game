@@ -411,22 +411,29 @@ select {
 
 .triangle.green {
   background: #20a64b;
-  clip-path: polygon(0 0, 100% 0, 50% 50%);
+  clip-path: polygon(0 0, 0 100%, 50% 50%);
+
+
 }
 
 .triangle.red {
   background: #e43b35;
-  clip-path: polygon(100% 0, 100% 100%, 50% 50%);
+  clip-path: polygon(100% 0, 0 0, 50% 50%);
+
 }
 
 .triangle.yellow {
   background: #f1c40f;
-  clip-path: polygon(0 100%, 100% 100%, 50% 50%);
+  clip-path: polygon(100% 0, 100% 100%, 50% 50%);
+
+
 }
 
 .triangle.blue {
   background: #2d8df0;
-  clip-path: polygon(0 0, 0 100%, 50% 50%);
+  clip-path: polygon(0 100%, 100% 100%, 50% 50%);
+
+
 }
 
 .path-cell {
@@ -506,8 +513,7 @@ select {
   width: 100%;
   height: 100%;
   filter:
-    drop-shadow(0 2px 0 rgba(255, 255, 255, 0.95))
-    drop-shadow(0 4px 5px rgba(18, 32, 51, 0.22));
+    drop-shadow(0 2px 0 rgba(255, 255, 255, 0.95)) drop-shadow(0 4px 5px rgba(18, 32, 51, 0.22));
 }
 
 .token.moving .token-marker {
@@ -639,9 +645,12 @@ select {
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.12);
   }
@@ -651,9 +660,11 @@ select {
   0% {
     transform: scale(0.96);
   }
+
   50% {
     transform: translateY(-3px) scale(1.08);
   }
+
   100% {
     transform: scale(1);
   }
@@ -663,18 +674,22 @@ select {
   0% {
     transform: rotate(0deg) scale(1);
   }
+
   25% {
     transform: rotate(-8deg) scale(1.04);
   }
+
   50% {
     transform: rotate(8deg) scale(1.06);
   }
+
   100% {
     transform: rotate(0deg) scale(1);
   }
 }
 
 @media (max-width: 980px) {
+
   .room-panels,
   .game-layout,
   .top-bar {
@@ -691,6 +706,7 @@ select {
 }
 
 @media (max-width: 640px) {
+
   .app-shell,
   .hero-layout {
     padding: 16px;
