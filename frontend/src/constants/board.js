@@ -16,10 +16,10 @@ export const COMMON_PATH = [
 ];
 
 const START_OFFSETS = {
-  green: 0,
-  red: 13,
-  yellow: 26,
-  blue: 39,
+  green: 9,
+  red: 48,
+  yellow: 35,
+  blue: 22,
 };
 
 export const HOME_PATHS = {
@@ -59,16 +59,18 @@ export const BASES = {
   yellow: { x: 9, y: 9, size: 6 },
 };
 
-export const SAFE_INDICES = new Set([0, 8, 13, 21, 26, 34, 39, 47]);
+export const SAFE_INDICES = new Set(
+  Object.values(START_OFFSETS).flatMap((offset) => [offset, (offset - 8 + COMMON_PATH.length) % COMMON_PATH.length])
+);
 export const SAFE_CELLS = new Set(
   Array.from(SAFE_INDICES).map((index) => `${COMMON_PATH[index].x}-${COMMON_PATH[index].y}`)
 );
 
 export const START_ENTRY_CELLS = {
-  green: { x: 6, y: 1 },
-  red: { x: 13, y: 6 },
-  yellow: { x: 8, y: 13 },
-  blue: { x: 1, y: 8 },
+  green: { x: 1, y: 6 },
+  red: { x: 8, y: 1},
+  yellow: { x: 13, y: 8 },
+  blue: { x: 6, y: 13 },
 };
 
 export const TRACK_CELLS = COMMON_PATH.map((cell, index) => ({
@@ -107,7 +109,7 @@ export function getTokenCoordinate(color, tokenStep, tokenIndex) {
     return START_YARDS[color][tokenIndex];
   }
   if (tokenStep <= 51) {
-    return COMMON_PATH[(START_OFFSETS[color] + tokenStep) % COMMON_PATH.length];
+    return COMMON_PATH[(START_OFFSETS[color] - tokenStep + COMMON_PATH.length) % COMMON_PATH.length];
   }
   return HOME_PATHS[color][Math.min(tokenStep - 52, HOME_PATHS[color].length - 1)];
 }

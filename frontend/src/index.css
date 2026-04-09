@@ -386,9 +386,9 @@ select {
 
 .yard-slot {
   position: relative;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #ffffff, #eef3fa 80%);
-  box-shadow: inset 0 0 0 2px rgba(18, 32, 51, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .board-center {
@@ -465,26 +465,60 @@ select {
   box-shadow: inset 0 0 0 1px rgba(255, 183, 0, 0.28);
 }
 
+.path-cell.start-entry {
+  overflow: hidden;
+}
+
+.path-cell.start-entry.green {
+  background: #caefd6;
+  border-color: #8dc8a0;
+}
+
+.path-cell.start-entry.red {
+  background: #f9d0d0;
+  border-color: #e2a1a1;
+}
+
+.path-cell.start-entry.yellow {
+  background: #f7edbf;
+  border-color: #decf80;
+}
+
+.path-cell.start-entry.blue {
+  background: #d3e5ff;
+  border-color: #95bbe8;
+}
+
 .token {
   position: absolute;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 3px solid #ffffff;
-  color: white;
-  font-size: 0.72rem;
-  font-weight: 700;
-  box-shadow:
-    inset 0 2px 4px rgba(255, 255, 255, 0.45),
-    0 5px 10px rgba(18, 32, 51, 0.28);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
   z-index: 3;
+  transition: filter 160ms ease;
+}
+
+.token-marker {
+  width: 100%;
+  height: 100%;
+  filter:
+    drop-shadow(0 2px 0 rgba(255, 255, 255, 0.95))
+    drop-shadow(0 4px 5px rgba(18, 32, 51, 0.22));
+}
+
+.token.moving .token-marker {
+  animation: token-hop 250ms ease;
 }
 
 .yard-token {
   position: relative;
   inset: auto;
-  width: min(54px, 74%);
-  height: min(54px, 74%);
+  width: min(54px, 72%);
+  height: min(54px, 72%);
   margin: auto;
   display: flex;
   align-items: center;
@@ -497,8 +531,8 @@ select {
 }
 
 .yard-marker {
-  width: 78%;
-  height: 78%;
+  width: 100%;
+  height: 100%;
 }
 
 .yard-token.green .yard-marker {
@@ -525,29 +559,30 @@ select {
 }
 
 .safe-star {
-  color: #f0b400;
-  font-size: clamp(12px, 1.8vw, 18px);
+  color: #b5bfcc;
+  font-size: clamp(13px, 1.8vw, 18px);
   line-height: 1;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 .token.green {
-  background: radial-gradient(circle at 30% 30%, #49d17a, #1d8c40 68%);
+  color: #20a64b;
 }
 
 .token.red {
-  background: radial-gradient(circle at 30% 30%, #ff736d, #c72a2a 68%);
+  color: #e43b35;
 }
 
 .token.yellow {
-  background: radial-gradient(circle at 30% 30%, #ffe16c, #d6a400 68%);
+  color: #d6ab00;
 }
 
 .token.blue {
-  background: radial-gradient(circle at 30% 30%, #69b6ff, #206dd4 68%);
+  color: #2d8df0;
 }
 
 .token.clickable {
-  outline: 3px solid rgba(255, 183, 0, 0.92);
+  filter: drop-shadow(0 0 10px rgba(255, 183, 0, 0.72));
   animation: pulse 1.2s infinite;
 }
 
@@ -612,6 +647,18 @@ select {
   }
 }
 
+@keyframes token-hop {
+  0% {
+    transform: scale(0.96);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 @keyframes wobble {
   0% {
     transform: rotate(0deg) scale(1);
@@ -659,9 +706,8 @@ select {
   }
 
   .token {
-    width: 20px;
-    height: 20px;
-    font-size: 0.56rem;
+    width: 24px;
+    height: 24px;
   }
 
   .path-cell {
