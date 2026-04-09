@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import {
   BASES,
+  BOARD_STEP,
   HOME_CELLS,
   START_ENTRY_CELLS,
   START_YARDS,
@@ -17,7 +18,7 @@ const TOKEN_STACK_OFFSETS = [
   { x: 0, y: 12 },
   { x: 12, y: 12 },
 ];
-const STEP_ANIMATION_MS = 130;
+const STEP_ANIMATION_MS = 190;
 
 function coordKey({ x, y }) {
   return `${x}-${y}`;
@@ -83,17 +84,21 @@ function buildTokenFrames(color, tokenIndex, fromStep, toStep) {
 }
 
 function getTokenStyle(coordinate, stackIndex, isYard) {
-  const baseStyle = getBoardPositionStyle({
-    x: coordinate.x,
-    y: coordinate.y,
-    span: 1,
-    inset: isYard ? 10 : 7,
-  });
   const offset = TOKEN_STACK_OFFSETS[stackIndex] || { x: 0, y: 0 };
 
+  if (isYard) {
+    return getBoardPositionStyle({
+      x: coordinate.x,
+      y: coordinate.y,
+      span: 1,
+      inset: 10,
+    });
+  }
+
   return {
-    ...baseStyle,
-    transform: `translate(${offset.x}px, ${offset.y}px)`,
+    left: `calc(${(coordinate.x + 0.5) * BOARD_STEP}% + ${offset.x}px)`,
+    top: `calc(${(coordinate.y + 0.5) * BOARD_STEP}% + ${offset.y}px)`,
+    transform: "translate(-50%, -50%)",
   };
 }
 

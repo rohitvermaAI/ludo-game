@@ -1,4 +1,4 @@
-const WS_BASE = "ws://localhost:8000";
+import { WS_BASE } from "./config";
 
 export function connectToRoom(roomId, playerId, onMessage) {
   const socket = new WebSocket(`${WS_BASE}/ws/${roomId}?player_id=${playerId}`);

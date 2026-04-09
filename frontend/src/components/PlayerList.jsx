@@ -8,16 +8,20 @@ export default function PlayerList({ players, currentTurn, winner }) {
             winner === player.id ? "winner" : ""
           }`}
         >
-          <div className="player-title">
+          <div className="player-avatar" aria-hidden="true">
             <span className="player-dot" />
-            <div>
-              <strong>{player.name}</strong>
-              <p>{player.color}</p>
-            </div>
           </div>
-          <div className="player-stats">
-            <span>{player.finished_tokens}/4 home</span>
-            <span>{player.connected ? "Online" : "Offline"}</span>
+          <div className="player-meta">
+            <strong>{player.name}</strong>
+            <span className="player-status">
+              {winner === player.id
+                ? "Winner"
+                : currentTurn === player.id
+                  ? "Turn"
+                  : player.connected
+                    ? "Ready"
+                    : "Offline"}
+            </span>
           </div>
         </article>
       ))}

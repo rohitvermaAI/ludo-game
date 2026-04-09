@@ -26,18 +26,23 @@ export default function Dice({ value, isRolling, canRoll, onRoll }) {
   }, [isRolling, value]);
 
   return (
-    <div className="dice-panel">
-      <div className={`dice ${isRolling ? "rolling" : ""}`}>
-        {Array.from({ length: 9 }).map((_, index) => (
-          <span
-            key={index}
-            className={`pip ${DOT_LAYOUTS[displayValue]?.includes(index + 1) ? "visible" : ""}`}
-          />
-        ))}
-      </div>
-
-      <button className="primary-button" onClick={onRoll} disabled={!canRoll || isRolling}>
-        {isRolling ? "Rolling..." : "Roll Dice"}
+    <div className={`dice-fab ${canRoll ? "ready" : ""} ${isRolling ? "is-rolling" : ""}`}>
+      <button
+        type="button"
+        className="dice-button"
+        onClick={onRoll}
+        disabled={!canRoll || isRolling}
+        aria-label={isRolling ? "Rolling dice" : "Roll dice"}
+      >
+        <div className={`dice ${isRolling ? "rolling" : ""}`}>
+          {Array.from({ length: 9 }).map((_, index) => (
+            <span
+              key={index}
+              className={`pip ${DOT_LAYOUTS[displayValue]?.includes(index + 1) ? "visible" : ""}`}
+            />
+          ))}
+        </div>
+        <span className="dice-caption">{isRolling ? "Rolling" : "Roll"}</span>
       </button>
     </div>
   );

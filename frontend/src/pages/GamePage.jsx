@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import Board from "../components/Board";
 import Dice from "../components/Dice";
 import Leaderboard from "../components/Leaderboard";
-import PlayerList from "../components/PlayerList";
 import RoomSetup from "../components/RoomSetup";
 import WaitingRoom from "../components/WaitingRoom";
 import { api } from "../services/api";
@@ -153,26 +152,15 @@ export default function GamePage() {
   const canRoll = isMyTurn && gameState.dice_value === null && gameState.status === "playing";
 
   return (
-    <main className="app-shell">
-      <section className="top-bar">
-        <div>
-          <p className="eyebrow">Room {session.roomId}</p>
-          <h1>Ludo Arena</h1>
-          <p className="status-text">{gameState.message}</p>
-        </div>
-        <div className={`turn-indicator ${gameState.current_turn_color || ""}`}>
-          {gameState.status === "finished"
-            ? `${gameState.winner_name} won`
-            : `${gameState.current_turn_name}'s turn`}
-        </div>
-      </section>
-
-      <section className="game-layout">
-        <div className="left-column">
-          <PlayerList
+    <main className="app-shell game-screen">
+      <section className="game-chrome">
+        <section className="board-stage">
+          <Board
             players={gameState.players}
             currentTurn={gameState.current_turn}
-            winner={gameState.winner}
+            localPlayerId={session.playerId}
+            validMoves={gameState.valid_moves}
+            onMoveToken={handleMoveToken}
           />
 
           <Dice
@@ -181,21 +169,7 @@ export default function GamePage() {
             canRoll={canRoll}
             onRoll={handleRollDice}
           />
-
-          <section className="panel side-note">
-            <h3>How to Play</h3>
-            <p>Roll 6 to enter the board, safe cells cannot be captured, and exact rolls are required to reach home.</p>
-            <p>Your movable tokens pulse on the board when it is your turn.</p>
-          </section>
-        </div>
-
-        <Board
-          players={gameState.players}
-          currentTurn={gameState.current_turn}
-          localPlayerId={session.playerId}
-          validMoves={gameState.valid_moves}
-          onMoveToken={handleMoveToken}
-        />
+        </section>
       </section>
 
       {gameState.status === "finished" ? (

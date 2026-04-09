@@ -1,5 +1,6 @@
 export const BOARD_SIZE = 15;
 const STEP = 100 / BOARD_SIZE;
+export const BOARD_STEP = STEP;
 
 export const COMMON_PATH = [
   { x: 6, y: 1 }, { x: 6, y: 2 }, { x: 6, y: 3 }, { x: 6, y: 4 }, { x: 6, y: 5 },
