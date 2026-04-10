@@ -20,7 +20,7 @@ export default function Dice({ value, isRolling, canRoll, onRoll }) {
 
     const interval = window.setInterval(() => {
       setDisplayValue(Math.floor(Math.random() * 6) + 1);
-    }, 100);
+    }, 70);
 
     return () => window.clearInterval(interval);
   }, [isRolling, value]);
@@ -42,7 +42,9 @@ export default function Dice({ value, isRolling, canRoll, onRoll }) {
             />
           ))}
         </div>
-        <span className="dice-caption">{isRolling ? "Rolling" : "Roll"}</span>
+        <span className="dice-caption" aria-live="polite">
+          {isRolling ? "Rolling" : "Roll"}
+        </span>
       </button>
     </div>
   );

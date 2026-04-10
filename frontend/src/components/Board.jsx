@@ -19,6 +19,7 @@ const TOKEN_STACK_OFFSETS = [
   { x: 12, y: 12 },
 ];
 const STEP_ANIMATION_MS = 190;
+const SETTLE_ANIMATION_MS = 120;
 
 function coordKey({ x, y }) {
   return `${x}-${y}`;
@@ -151,6 +152,7 @@ export default function Board({ players, currentTurn, localPlayerId, validMoves,
 
   useLayoutEffect(() => {
     const previousPlayers = previousPlayersRef.current;
+    const nextAnimatedTokens = {};
 
     players.forEach((player) => {
       const previousPlayer = previousPlayers.find((entry) => entry.id === player.id);
@@ -178,10 +180,7 @@ export default function Board({ players, currentTurn, localPlayerId, validMoves,
           return;
         }
 
-        setAnimatedTokens((current) => ({
-          ...current,
-          [tokenKey]: frames[0],
-        }));
+        nextAnimatedTokens[tokenKey] = frames[0];
 
         const timeoutIds = frames.slice(1).map((frame, index) =>
           window.setTimeout(() => {
@@ -196,12 +195,19 @@ export default function Board({ players, currentTurn, localPlayerId, validMoves,
           window.setTimeout(() => {
             setAnimatedTokens((current) => removeAnimatedToken(current, tokenKey));
             animationTimeoutsRef.current.delete(tokenKey);
-          }, STEP_ANIMATION_MS * frames.length)
+          }, STEP_ANIMATION_MS * frames.length + SETTLE_ANIMATION_MS)
         );
 
         animationTimeoutsRef.current.set(tokenKey, timeoutIds);
       });
     });
+
+    if (Object.keys(nextAnimatedTokens).length > 0) {
+      setAnimatedTokens((current) => ({
+        ...current,
+        ...nextAnimatedTokens,
+      }));
+    }
 
     previousPlayersRef.current = players;
   }, [players]);
