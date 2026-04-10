@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   BASES,
   BOARD_STEP,
@@ -18,8 +18,9 @@ const TOKEN_STACK_OFFSETS = [
   { x: 0, y: 12 },
   { x: 12, y: 12 },
 ];
-const STEP_ANIMATION_MS = 190;
-const SETTLE_ANIMATION_MS = 120;
+const STEP_ANIMATION_MS = 300;
+const TURN_FRAME_MS = 110;
+const SETTLE_ANIMATION_MS = 140;
 
 function coordKey({ x, y }) {
   return `${x}-${y}`;
@@ -34,14 +35,32 @@ const START_ENTRY_LOOKUP = Object.entries(START_ENTRY_CELLS).reduce((acc, [color
   return acc;
 }, {});
 
-function removeAnimatedToken(current, tokenKey) {
-  if (!(tokenKey in current)) {
-    return current;
-  }
+function createDisplayedCoordinates(players) {
+  const initial = {};
 
-  const next = { ...current };
-  delete next[tokenKey];
-  return next;
+  players.forEach((player) => {
+    player.tokens.forEach((tokenStep, tokenIndex) => {
+      const tokenKey = getTokenKey(player.id, tokenIndex);
+      initial[tokenKey] = tokenStep < 0
+        ? START_YARDS[player.color][tokenIndex]
+        : getTokenCoordinate(player.color, tokenStep, tokenIndex);
+    });
+  });
+
+  return initial;
+}
+
+function createDisplayedSteps(players) {
+  const initial = {};
+
+  players.forEach((player) => {
+    player.tokens.forEach((tokenStep, tokenIndex) => {
+      const tokenKey = getTokenKey(player.id, tokenIndex);
+      initial[tokenKey] = tokenStep;
+    });
+  });
+
+  return initial;
 }
 
 function createTurnFrame(from, to) {
@@ -49,7 +68,11 @@ function createTurnFrame(from, to) {
     return null;
   }
 
-  return { x: from.x, y: to.y };
+  return {
+    coordinate: { x: from.x, y: to.y },
+    step: null,
+    isTurn: true,
+  };
 }
 
 function buildTokenFrames(color, tokenIndex, fromStep, toStep) {
@@ -60,28 +83,45 @@ function buildTokenFrames(color, tokenIndex, fromStep, toStep) {
   const frames = [];
 
   if (fromStep < 0) {
-    frames.push(START_YARDS[color][tokenIndex]);
+    frames.push({
+      step: -1,
+      coordinate: START_YARDS[color][tokenIndex],
+      duration: 0,
+    });
     for (let step = 0; step <= toStep; step += 1) {
-      frames.push(getTokenCoordinate(color, step, tokenIndex));
+      frames.push({
+        step,
+        coordinate: getTokenCoordinate(color, step, tokenIndex),
+        duration: STEP_ANIMATION_MS,
+      });
     }
   } else {
-    frames.push(getTokenCoordinate(color, fromStep, tokenIndex));
+    frames.push({
+      step: fromStep,
+      coordinate: getTokenCoordinate(color, fromStep, tokenIndex),
+      duration: 0,
+    });
     for (let step = fromStep + 1; step <= toStep; step += 1) {
-      frames.push(getTokenCoordinate(color, step, tokenIndex));
+      const previous = frames[frames.length - 1];
+      const next = {
+        step,
+        coordinate: getTokenCoordinate(color, step, tokenIndex),
+        duration: STEP_ANIMATION_MS,
+      };
+
+      const turnFrame = createTurnFrame(previous.coordinate, next.coordinate);
+      if (turnFrame) {
+        frames.push({
+          ...turnFrame,
+          duration: TURN_FRAME_MS,
+        });
+      }
+
+      frames.push(next);
     }
   }
 
-  return frames.reduce((expanded, frame) => {
-    const previous = expanded[expanded.length - 1];
-    const turnFrame = createTurnFrame(previous, frame);
-
-    if (turnFrame) {
-      expanded.push(turnFrame);
-    }
-
-    expanded.push(frame);
-    return expanded;
-  }, []);
+  return frames;
 }
 
 function getTokenStyle(coordinate, stackIndex, isYard) {
@@ -145,18 +185,23 @@ function Base({ color, players, localPlayerId, currentTurn, validMoves, onMoveTo
 }
 
 export default function Board({ players, currentTurn, localPlayerId, validMoves, onMoveToken }) {
-  const [animatedTokens, setAnimatedTokens] = useState({});
-  const previousPlayersRef = useRef(players);
+  const [displayedCoordinates, setDisplayedCoordinates] = useState(() => createDisplayedCoordinates(players));
+  const [displayedSteps, setDisplayedSteps] = useState(() => createDisplayedSteps(players));
+  const displayedCoordinatesRef = useRef(displayedCoordinates);
+  const displayedStepsRef = useRef(displayedSteps);
   const animationTimeoutsRef = useRef(new Map());
   const tokensByCell = new Map();
 
+  useEffect(() => {
+    displayedCoordinatesRef.current = displayedCoordinates;
+  }, [displayedCoordinates]);
+
+  useEffect(() => {
+    displayedStepsRef.current = displayedSteps;
+  }, [displayedSteps]);
+
   useLayoutEffect(() => {
-    const previousPlayers = previousPlayersRef.current;
-    const nextAnimatedTokens = {};
-
     players.forEach((player) => {
-      const previousPlayer = previousPlayers.find((entry) => entry.id === player.id);
-
       player.tokens.forEach((tokenStep, tokenIndex) => {
         const tokenKey = getTokenKey(player.id, tokenIndex);
         const existingTimeouts = animationTimeoutsRef.current.get(tokenKey);
@@ -166,50 +211,77 @@ export default function Board({ players, currentTurn, localPlayerId, validMoves,
           animationTimeoutsRef.current.delete(tokenKey);
         }
 
-        const previousStep = previousPlayer?.tokens[tokenIndex] ?? tokenStep;
+        const previousStep = displayedStepsRef.current[tokenKey] ?? tokenStep;
 
         if (tokenStep < previousStep) {
-          setAnimatedTokens((current) => removeAnimatedToken(current, tokenKey));
+          setDisplayedCoordinates((current) => ({
+            ...current,
+            [tokenKey]: tokenStep < 0
+              ? START_YARDS[player.color][tokenIndex]
+              : getTokenCoordinate(player.color, tokenStep, tokenIndex),
+          }));
+          setDisplayedSteps((current) => ({
+            ...current,
+            [tokenKey]: tokenStep,
+          }));
           return;
         }
 
         const frames = buildTokenFrames(player.color, tokenIndex, previousStep, tokenStep);
 
         if (frames.length <= 1) {
-          setAnimatedTokens((current) => removeAnimatedToken(current, tokenKey));
+          setDisplayedCoordinates((current) => ({
+            ...current,
+            [tokenKey]: tokenStep < 0
+              ? START_YARDS[player.color][tokenIndex]
+              : getTokenCoordinate(player.color, tokenStep, tokenIndex),
+          }));
+          setDisplayedSteps((current) => ({
+            ...current,
+            [tokenKey]: tokenStep,
+          }));
           return;
         }
 
-        nextAnimatedTokens[tokenKey] = frames[0];
+        setDisplayedCoordinates((current) => ({
+          ...current,
+          [tokenKey]: frames[0].coordinate,
+        }));
+        setDisplayedSteps((current) => ({
+          ...current,
+          [tokenKey]: frames[0].step,
+        }));
 
-        const timeoutIds = frames.slice(1).map((frame, index) =>
-          window.setTimeout(() => {
-            setAnimatedTokens((current) => ({
+        let elapsed = 0;
+        const timeoutIds = frames.slice(1).map((frame) => {
+          elapsed += frame.duration ?? STEP_ANIMATION_MS;
+          return window.setTimeout(() => {
+            setDisplayedCoordinates((current) => ({
               ...current,
-              [tokenKey]: frame,
+              [tokenKey]: frame.coordinate,
             }));
-          }, STEP_ANIMATION_MS * (index + 1))
-        );
+            if (frame.step !== null) {
+              setDisplayedSteps((current) => ({
+                ...current,
+                [tokenKey]: frame.step,
+              }));
+            }
+          }, elapsed);
+        });
 
         timeoutIds.push(
           window.setTimeout(() => {
-            setAnimatedTokens((current) => removeAnimatedToken(current, tokenKey));
             animationTimeoutsRef.current.delete(tokenKey);
-          }, STEP_ANIMATION_MS * frames.length + SETTLE_ANIMATION_MS)
+            setDisplayedSteps((current) => ({
+              ...current,
+              [tokenKey]: tokenStep,
+            }));
+          }, elapsed + SETTLE_ANIMATION_MS)
         );
 
         animationTimeoutsRef.current.set(tokenKey, timeoutIds);
       });
     });
-
-    if (Object.keys(nextAnimatedTokens).length > 0) {
-      setAnimatedTokens((current) => ({
-        ...current,
-        ...nextAnimatedTokens,
-      }));
-    }
-
-    previousPlayersRef.current = players;
   }, [players]);
 
   useLayoutEffect(() => () => {
@@ -224,13 +296,15 @@ export default function Board({ players, currentTurn, localPlayerId, validMoves,
       if (tokenStep < 0) return;
 
       const tokenKey = getTokenKey(player.id, tokenIndex);
-      const coordinate = animatedTokens[tokenKey] ?? getTokenCoordinate(player.color, tokenStep, tokenIndex);
+      const coordinate =
+        displayedCoordinates[tokenKey] ??
+        getTokenCoordinate(player.color, tokenStep, tokenIndex);
       const key = coordKey(coordinate);
       const entry = {
         playerId: player.id,
         tokenIndex,
         color: player.color,
-        isMoving: Boolean(animatedTokens[tokenKey]),
+        isMoving: Boolean(animationTimeoutsRef.current.get(tokenKey)),
         isClickable:
           player.id === localPlayerId &&
           currentTurn === localPlayerId &&
