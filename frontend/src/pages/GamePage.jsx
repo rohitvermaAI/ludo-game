@@ -100,7 +100,7 @@ export default function GamePage() {
     } catch (requestError) {
       setError(requestError.message);
     } finally {
-      window.setTimeout(() => setRolling(false), 850);
+      window.setTimeout(() => setRolling(false), 1200);
     }
   };
 
