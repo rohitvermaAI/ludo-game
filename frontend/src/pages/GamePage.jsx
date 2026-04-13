@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import Board from "../components/Board";
 import Dice from "../components/Dice";
 import Leaderboard from "../components/Leaderboard";
-import PlayerList from "../components/PlayerList";
 import RoomSetup from "../components/RoomSetup";
 import WaitingRoom from "../components/WaitingRoom";
 import { api } from "../services/api";
@@ -151,39 +150,10 @@ export default function GamePage() {
 
   const isMyTurn = gameState.current_turn === session.playerId;
   const canRoll = isMyTurn && gameState.dice_value === null && gameState.status === "playing";
-  const currentTurnPlayer = gameState.players.find((player) => player.id === gameState.current_turn);
-  const activeStatus = gameState.status === "finished"
-    ? "Match complete"
-    : gameState.status === "playing"
-      ? isMyTurn
-        ? "Your turn"
-        : `${currentTurnPlayer?.name || "Another player"} is playing`
-      : "Waiting for players";
 
   return (
     <main className="app-shell game-screen">
       <section className="game-chrome">
-        <header className="match-hud">
-          <div className="match-title">
-            <p className="eyebrow">Classic Ludo</p>
-            <h1>Room {session.roomId}</h1>
-            <p className="status-text">{activeStatus}</p>
-          </div>
-
-          <div className="match-stats">
-            <div className={`status-chip ${isMyTurn ? "turn" : "idle"}`}>
-              {isMyTurn ? "Your move" : "Turn locked"}
-            </div>
-            <div className="room-badge">Roll: {gameState.dice_value ?? gameState.last_roll ?? "Ready"}</div>
-          </div>
-        </header>
-
-        <PlayerList
-          players={gameState.players}
-          currentTurn={gameState.current_turn}
-          winner={gameState.winner_id}
-        />
-
         <section className="board-stage">
           <Board
             players={gameState.players}

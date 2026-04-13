@@ -342,9 +342,18 @@ select {
 }
 
 .game-screen {
+  width: 100vw;
+  max-width: 100vw;
   min-height: 100dvh;
-  height: auto;
-  overflow: visible;
+  height: 100dvh;
+  display: grid;
+  place-items: center;
+  place-content: center;
+  justify-content: center;
+  align-content: center;
+  overflow: hidden;
+  gap: 0;
+  margin: 0;
   padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom));
   background:
     radial-gradient(circle at top, rgba(255, 255, 255, 0.3), transparent 20%),
@@ -352,14 +361,16 @@ select {
 }
 
 .game-chrome {
-  width: min(100%, 920px);
-  margin: 0 auto;
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0;
   min-height: 100%;
-  height: auto;
-  display: grid;
-  grid-template-rows: auto auto 1fr;
-  gap: 16px;
-  padding-bottom: 20px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 0;
+  flex: 1;
 }
 
 .match-hud {
@@ -406,19 +417,27 @@ select {
 }
 
 .board-stage {
+  --dice-gap: 148px;
+  --dice-height: 122px;
   position: relative;
+  flex: 1;
+  width: 100vw;
+  max-width: 100vw;
   min-height: 0;
-  height: auto;
-  display: grid;
-  place-items: center;
-  overflow: visible;
-  padding: 4px 0 96px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0 0 var(--dice-gap);
+  margin: 0 auto;
 }
 
 .dice-fab {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: calc((var(--dice-gap) - var(--dice-height)) / 2);
   transform: translateX(-50%);
   z-index: 6;
 }
@@ -428,14 +447,14 @@ select {
 }
 
 .dice-button {
-  min-width: 88px;
-  min-height: 88px;
+  width: 104px;
+  height: 104px;
   padding: 10px;
   border: none;
   border-radius: 28px;
-  display: grid;
-  justify-items: center;
-  gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #3b2e1f;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(242, 230, 207, 0.96));
   box-shadow:
@@ -443,36 +462,35 @@ select {
     inset 0 0 0 1px rgba(96, 70, 34, 0.08);
 }
 
-.dice-button:disabled {
-  opacity: 0.88;
+.dice-button.clickable {
+  cursor: pointer;
 }
 
-.dice-caption {
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.dice-button:disabled {
+  opacity: 0.88;
 }
 
 .dice {
   width: 56px;
   height: 56px;
   border-radius: 18px;
-  background: linear-gradient(145deg, #fffdf8, #efe4d1);
-  box-shadow: inset 0 0 0 1px rgba(96, 70, 34, 0.12), 0 10px 18px rgba(61, 43, 20, 0.14);
+  background: #ffffff;
+  box-shadow:
+    inset 0 0 0 1px rgba(96, 70, 34, 0.1),
+    0 8px 16px rgba(61, 43, 20, 0.08);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  padding: 8px;
-  gap: 5px;
+  padding: 9px;
+  gap: 3px;
 }
 
 .dice.rolling {
-  animation: wobble 0.8s ease, dice-glow 0.8s ease;
+  animation: wobble 0.8s ease;
 }
 
 .pip {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: transparent;
   align-self: center;
@@ -482,6 +500,7 @@ select {
 .pip.visible {
   background: #3b2e1f;
 }
+
 
 .board-shell {
   width: min(96vw, calc(100dvh - 104px));
@@ -582,14 +601,14 @@ select {
 
 .board-center {
   position: absolute;
-  left: calc(40% + 4px);
-  top: calc(40% + 4px);
-  width: calc(20% - 8px);
-  height: calc(20% - 8px);
+  left: calc(40% + 1px);
+  top: calc(40% + 1px);
+  width: calc(20% - 2px);
+  height: calc(20% - 2px);
   overflow: hidden;
-  border-radius: 10px;
-  box-shadow: inset 0 0 0 2px rgba(96, 70, 34, 0.12);
-  z-index: 2;
+  border-radius: 6px;
+  box-shadow: none;
+  z-index: 4;
 }
 
 .triangle {
@@ -794,51 +813,13 @@ select {
 
 .token.clickable {
   filter: drop-shadow(0 0 10px rgba(197, 155, 45, 0.72));
-  animation: token-glow 1.7s ease-in-out infinite;
+  animation: token-blink 0.95s steps(2, end) infinite;
 }
 
-.board-legend,
 .leaderboard-list,
 .waiting-grid {
   display: grid;
   gap: 12px;
-}
-
-.board-legend {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px 18px;
-  margin-top: 12px;
-  color: #5e4f3f;
-}
-
-.board-legend > div {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.86rem;
-}
-
-.legend-chip {
-  width: 12px;
-  height: 12px;
-  display: inline-block;
-  border-radius: 50%;
-  margin-right: 0;
-}
-
-.legend-chip.safe {
-  background: #c59b2d;
-}
-
-.legend-chip.move {
-  background: #d56a4c;
-}
-
-.legend-chip.turn {
-  background: #3b2e1f;
 }
 
 .lobby-card,
@@ -860,14 +841,16 @@ select {
   line-height: 1.5;
 }
 
-@keyframes token-glow {
+@keyframes token-blink {
   0%,
   100% {
+    opacity: 1;
     filter: drop-shadow(0 0 8px rgba(197, 155, 45, 0.52));
   }
 
   50% {
-    filter: drop-shadow(0 0 14px rgba(197, 155, 45, 0.88));
+    opacity: 0.38;
+    filter: drop-shadow(0 0 16px rgba(197, 155, 45, 0.92));
   }
 }
 
@@ -956,8 +939,10 @@ select {
   }
 
   .board-stage {
+    --dice-gap: 112px;
+    --dice-height: 102px;
     padding-top: 0;
-    padding-bottom: 84px;
+    padding-bottom: var(--dice-gap);
   }
 
   .match-hud {
@@ -1003,10 +988,9 @@ select {
   }
 
   .dice-button {
-    min-width: 70px;
-    min-height: 70px;
+    width: 78px;
+    height: 78px;
     border-radius: 22px;
-    gap: 6px;
     padding: 7px;
   }
 
@@ -1014,10 +998,12 @@ select {
     width: 42px;
     height: 42px;
     padding: 7px;
-    gap: 4px;
+    gap: 2px;
   }
 
-  .dice-caption {
-    font-size: 0.66rem;
+  .pip {
+    width: 5px;
+    height: 5px;
   }
+
 }

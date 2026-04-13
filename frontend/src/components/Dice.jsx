@@ -20,7 +20,7 @@ export default function Dice({ value, isRolling, canRoll, onRoll }) {
 
     const interval = window.setInterval(() => {
       setDisplayValue(Math.floor(Math.random() * 6) + 1);
-    }, 70);
+    }, 85);
 
     return () => window.clearInterval(interval);
   }, [isRolling, value]);
@@ -29,8 +29,12 @@ export default function Dice({ value, isRolling, canRoll, onRoll }) {
     <div className={`dice-fab ${canRoll ? "ready" : ""} ${isRolling ? "is-rolling" : ""}`}>
       <button
         type="button"
-        className="dice-button"
-        onClick={onRoll}
+        className={`dice-button ${canRoll && !isRolling ? "clickable" : ""}`}
+        onClick={() => {
+          if (canRoll && !isRolling) {
+            onRoll();
+          }
+        }}
         disabled={!canRoll || isRolling}
         aria-label={isRolling ? "Rolling dice" : "Roll dice"}
       >
@@ -42,9 +46,6 @@ export default function Dice({ value, isRolling, canRoll, onRoll }) {
             />
           ))}
         </div>
-        <span className="dice-caption" aria-live="polite">
-          {isRolling ? "Rolling" : "Roll"}
-        </span>
       </button>
     </div>
   );

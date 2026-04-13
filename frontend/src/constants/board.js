@@ -84,7 +84,15 @@ export const TRACK_CELLS = COMMON_PATH.map((cell, index) => ({
   id: `track-${index}`,
   kind: "track",
   safe: SAFE_INDICES.has(index),
-}));
+})).filter((cell) => {
+  const inCenterCross =
+    cell.x >= 6 &&
+    cell.x <= 8 &&
+    cell.y >= 6 &&
+    cell.y <= 8;
+
+  return !inCenterCross;
+});
 
 export const HOME_CELLS = Object.entries(HOME_PATHS).flatMap(([color, cells]) =>
   cells.map((cell, index) => ({

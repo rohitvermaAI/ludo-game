@@ -304,12 +304,6 @@ export default function Board({ players, currentTurn, localPlayerId, validMoves,
           ));
         })}
       </div>
-
-      <div className="board-legend">
-        <div><span className="legend-chip safe" /> Safe star</div>
-        <div><span className="legend-chip move" /> Valid token</div>
-        <div><span className="legend-chip turn" /> Your turn token</div>
-      </div>
     </section>
   );
 }
