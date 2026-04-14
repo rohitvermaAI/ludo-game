@@ -537,9 +537,9 @@ select {
   z-index: 20;
 }
 
-.board-label-row.top {
-  top: -18px;
-}
+/* .board-label-row.top { */
+  /* top: 0;
+} */
 
 .board-label-row.bottom {
   bottom: -18px;
