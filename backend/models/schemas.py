@@ -64,3 +64,8 @@ class RoomPlayerRequest(BaseModel):
 
 class MoveTokenRequest(RoomPlayerRequest):
     token_index: int
+
+
+class DevSetTokenStepRequest(RoomPlayerRequest):
+    token_index: int
+    token_step: int

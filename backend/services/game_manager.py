@@ -238,6 +238,36 @@ class GameManager:
         room = self._get_room(room_id)
         return self.serialize_room(room)
 
+    async def set_token_step(self, room_id: str, player_id: str, token_index: int, token_step: int) -> dict:
+        room = self._get_room(room_id)
+        async with self._get_lock(room_id):
+            if room.status == "finished":
+                raise HTTPException(status_code=400, detail="Game is already finished.")
+            if token_index < 0:
+                raise HTTPException(status_code=400, detail="Invalid token index.")
+            if token_step < -1 or token_step > 57:
+                raise HTTPException(status_code=400, detail="Invalid token step.")
+
+            player = LudoLogic.get_player(room, player_id)
+            if not player:
+                raise HTTPException(status_code=404, detail="Player not found in room.")
+            if token_index >= len(player.tokens):
+                raise HTTPException(status_code=400, detail="Invalid token index.")
+
+            player.tokens[token_index] = token_step
+            player.finished_tokens = sum(1 for token in player.tokens if token == 57)
+            room.message = f"Debug set {player.name}'s token {token_index + 1} to step {token_step}."
+            room.last_move = {
+                "player_id": player_id,
+                "token_index": token_index,
+                "from_yard": token_step < 0,
+                "captured_players": [],
+                "finished": token_step == 57,
+                "dice_value": None,
+                "debug": True,
+            }
+            return self.serialize_room(room)
+
     def mark_player_connection(self, room_id: str, player_id: str, connected: bool) -> None:
         room = self.rooms.get(room_id)
         if not room:

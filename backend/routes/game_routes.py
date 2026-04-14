@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from models.schemas import (
     CreateRoomRequest,
+    DevSetTokenStepRequest,
     JoinRoomRequest,
     MoveTokenRequest,
     RoomPlayerRequest,
@@ -49,3 +50,16 @@ async def move_token(payload: MoveTokenRequest) -> dict:
 @router.get("/room/{room_id}")
 async def get_room(room_id: str) -> dict:
     return await game_manager.get_room_state(room_id.upper())
+
+
+@router.post("/dev/set-token-step")
+async def dev_set_token_step(payload: DevSetTokenStepRequest) -> dict:
+    room_id = payload.room_id.upper()
+    state = await game_manager.set_token_step(
+        room_id,
+        payload.player_id,
+        payload.token_index,
+        payload.token_step,
+    )
+    await websocket_manager.broadcast(room_id, {"type": "game_state", "data": state})
+    return state

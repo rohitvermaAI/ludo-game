@@ -14,12 +14,19 @@ import PinMarker from "./PinMarker";
 
 const TOKEN_STACK_OFFSETS = [
   { x: 0, y: 0 },
-  { x: 12, y: 0 },
+  { x: 0, y: 4 },
+  { x: 0, y: 8 },
   { x: 0, y: 12 },
-  { x: 12, y: 12 },
 ];
+const TOKEN_GLOBAL_OFFSET = { x: 0, y: 0 };
 const STEP_ANIMATION_MS = 300;
 const SETTLE_ANIMATION_MS = 140;
+const HOME_ENTRY_WAYPOINTS = {
+  green: { x: 0, y: 7 },
+  red: { x: 7, y: 0 },
+  yellow: { x: 14, y: 7 },
+  blue: { x: 7, y: 14 },
+};
 
 function coordKey({ x, y }) {
   return `${x}-${y}`;
@@ -68,6 +75,7 @@ function buildTokenFrames(color, tokenIndex, fromStep, toStep) {
   }
 
   const frames = [];
+  const homeEntryWaypoint = HOME_ENTRY_WAYPOINTS[color];
 
   if (fromStep < 0) {
     frames.push({
@@ -76,6 +84,13 @@ function buildTokenFrames(color, tokenIndex, fromStep, toStep) {
       duration: 0,
     });
     for (let step = 0; step <= toStep; step += 1) {
+      if (step === 52 && homeEntryWaypoint) {
+        frames.push({
+          step: null,
+          coordinate: homeEntryWaypoint,
+          duration: 110,
+        });
+      }
       frames.push({
         step,
         coordinate: getTokenCoordinate(color, step, tokenIndex),
@@ -89,6 +104,13 @@ function buildTokenFrames(color, tokenIndex, fromStep, toStep) {
       duration: 0,
     });
     for (let step = fromStep + 1; step <= toStep; step += 1) {
+      if (step === 52 && homeEntryWaypoint) {
+        frames.push({
+          step: null,
+          coordinate: homeEntryWaypoint,
+          duration: 110,
+        });
+      }
       frames.push({
         step,
         coordinate: getTokenCoordinate(color, step, tokenIndex),
@@ -113,9 +135,10 @@ function getTokenStyle(coordinate, stackIndex, isYard) {
   }
 
   return {
-    left: `calc(${(coordinate.x + 0.5) * BOARD_STEP}% + ${offset.x}px)`,
-    top: `calc(${(coordinate.y + 0.5) * BOARD_STEP}% + ${offset.y}px)`,
+    left: `calc(${(coordinate.x + 0.5) * BOARD_STEP}% + ${offset.x + TOKEN_GLOBAL_OFFSET.x}px)`,
+    top: `calc(${(coordinate.y + 0.5) * BOARD_STEP}% + ${offset.y + TOKEN_GLOBAL_OFFSET.y}px)`,
     transform: "translate(-50%, -50%)",
+    zIndex: 20 + stackIndex,
   };
 }
 
