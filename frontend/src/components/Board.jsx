@@ -3,7 +3,6 @@ import {
   BASES,
   BOARD_STEP,
   HOME_CELLS,
-  START_ENTRY_CELLS,
   START_YARDS,
   TRACK_CELLS,
   getBaseStyle,
@@ -19,7 +18,6 @@ const TOKEN_STACK_OFFSETS = [
   { x: 12, y: 12 },
 ];
 const STEP_ANIMATION_MS = 300;
-const TURN_FRAME_MS = 110;
 const SETTLE_ANIMATION_MS = 140;
 
 function coordKey({ x, y }) {
@@ -63,18 +61,6 @@ function createDisplayedSteps(players) {
   return initial;
 }
 
-function createTurnFrame(from, to) {
-  if (!from || !to || from.x === to.x || from.y === to.y) {
-    return null;
-  }
-
-  return {
-    coordinate: { x: from.x, y: to.y },
-    step: null,
-    isTurn: true,
-  };
-}
-
 function buildTokenFrames(color, tokenIndex, fromStep, toStep) {
   if (toStep < 0 || fromStep === toStep || toStep < fromStep) {
     return [];
@@ -102,22 +88,11 @@ function buildTokenFrames(color, tokenIndex, fromStep, toStep) {
       duration: 0,
     });
     for (let step = fromStep + 1; step <= toStep; step += 1) {
-      const previous = frames[frames.length - 1];
-      const next = {
+      frames.push({
         step,
         coordinate: getTokenCoordinate(color, step, tokenIndex),
         duration: STEP_ANIMATION_MS,
-      };
-
-      const turnFrame = createTurnFrame(previous.coordinate, next.coordinate);
-      if (turnFrame) {
-        frames.push({
-          ...turnFrame,
-          duration: TURN_FRAME_MS,
-        });
-      }
-
-      frames.push(next);
+      });
     }
   }
 
@@ -184,7 +159,14 @@ function Base({ color, players, localPlayerId, currentTurn, validMoves, onMoveTo
   );
 }
 
-export default function Board({ players, currentTurn, localPlayerId, validMoves, onMoveToken }) {
+export default function Board({
+  players,
+  currentTurn,
+  localPlayerId,
+  validMoves,
+  onMoveToken,
+  activeColor,
+}) {
   const [displayedCoordinates, setDisplayedCoordinates] = useState(() => createDisplayedCoordinates(players));
   const [displayedSteps, setDisplayedSteps] = useState(() => createDisplayedSteps(players));
   const displayedCoordinatesRef = useRef(displayedCoordinates);
@@ -272,11 +254,11 @@ export default function Board({ players, currentTurn, localPlayerId, validMoves,
         timeoutIds.push(
           window.setTimeout(() => {
             animationTimeoutsRef.current.delete(tokenKey);
-            setDisplayedSteps((current) => ({
-              ...current,
-              [tokenKey]: tokenStep,
-            }));
-          }, elapsed + SETTLE_ANIMATION_MS)
+          setDisplayedSteps((current) => ({
+            ...current,
+            [tokenKey]: tokenStep,
+          }));
+        }, elapsed + SETTLE_ANIMATION_MS)
         );
 
         animationTimeoutsRef.current.set(tokenKey, timeoutIds);
@@ -346,7 +328,9 @@ export default function Board({ players, currentTurn, localPlayerId, validMoves,
           return (
             <div
               key={cell.id}
-              className={`path-cell track ${cell.safe ? "safe" : ""} ${startColor ? `start-entry ${startColor}` : ""}`}
+              className={`path-cell track ${cell.safe ? "safe" : ""} ${startColor ? `start-entry ${startColor}` : ""} ${
+                startColor && startColor === activeColor ? "turn-entry" : ""
+              }`}
               style={getBoardPositionStyle({ x: cell.x, y: cell.y, span: 1, inset: 3 })}
             >
               {!startColor && cell.safe ? <span className="safe-star">{"\u2606"}</span> : null}
@@ -357,7 +341,7 @@ export default function Board({ players, currentTurn, localPlayerId, validMoves,
         {HOME_CELLS.map((cell) => (
           <div
             key={cell.id}
-            className={`path-cell home ${cell.color}`}
+            className={`path-cell home ${cell.color} ${cell.color === activeColor ? "turn-home" : ""}`}
             style={getBoardPositionStyle({ x: cell.x, y: cell.y, span: 1, inset: 3 })}
           />
         ))}
