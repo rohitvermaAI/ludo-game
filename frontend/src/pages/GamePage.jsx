@@ -6,6 +6,7 @@ import RoomSetup from "../components/RoomSetup";
 import WaitingRoom from "../components/WaitingRoom";
 import { api } from "../services/api";
 import { connectToRoom } from "../services/socket";
+import { playSoundEffect } from "../services/sfx";
 
 export default function GamePage() {
   const [session, setSession] = useState(null);
@@ -14,6 +15,8 @@ export default function GamePage() {
   const [rolling, setRolling] = useState(false);
   const [error, setError] = useState("");
   const socketRef = useRef(null);
+  const autoMoveRef = useRef("");
+  const soundRef = useRef("");
 
   useEffect(() => {
     if (!session?.roomId || !session?.playerId) {
@@ -121,6 +124,72 @@ export default function GamePage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!gameState?.last_move) {
+      return;
+    }
+
+    const move = gameState.last_move;
+    const signature = [
+      gameState.room_id,
+      move.player_id,
+      move.token_index,
+      move.dice_value,
+      move.from_yard ? "yard" : "path",
+      (move.captured_players || []).join(","),
+      move.finished ? "finished" : "moving",
+      gameState.status,
+      gameState.winner || "",
+    ].join("|");
+
+    if (soundRef.current === signature) {
+      return;
+    }
+
+    soundRef.current = signature;
+
+    if (move.from_yard) {
+      playSoundEffect("tokenOut");
+    }
+
+    if (move.captured_players?.length) {
+      playSoundEffect("tokenCut");
+    }
+
+    if (move.finished || gameState.status === "finished") {
+      playSoundEffect("gameWin");
+    }
+  }, [gameState]);
+
+  useEffect(() => {
+    if (!session?.playerId || !gameState) {
+      return;
+    }
+
+    const shouldAutoMove =
+      gameState.status === "playing" &&
+      gameState.current_turn === session.playerId &&
+      gameState.dice_value !== null &&
+      Array.isArray(gameState.valid_moves) &&
+      gameState.valid_moves.length === 1 &&
+      !loading &&
+      !rolling;
+
+    if (!shouldAutoMove) {
+      autoMoveRef.current = "";
+      return;
+    }
+
+    const tokenIndex = gameState.valid_moves[0];
+    const signature = `${gameState.room_id}:${gameState.current_turn}:${gameState.dice_value}:${tokenIndex}`;
+    if (autoMoveRef.current === signature) {
+      return;
+    }
+
+    autoMoveRef.current = signature;
+    handleMoveToken(tokenIndex);
+  }, [gameState, loading, rolling, session?.playerId]);
 
   if (!session || !gameState) {
     return (

@@ -35,6 +35,7 @@ class GameRoom(BaseModel):
     current_turn: Optional[str] = None
     dice_value: Optional[int] = None
     last_roll: Optional[int] = None
+    last_move: Optional[dict] = None
     winner: Optional[str] = None
     message: str = "Waiting for players..."
 

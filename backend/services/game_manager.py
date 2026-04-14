@@ -62,6 +62,7 @@ class GameManager:
             "current_turn_color": current_player.color if current_player else None,
             "dice_value": room.dice_value,
             "last_roll": room.last_roll,
+            "last_move": room.last_move,
             "winner": room.winner,
             "winner_name": winner.name if winner else None,
             "valid_moves": valid_moves,
@@ -195,24 +196,40 @@ class GameManager:
             if not current_player:
                 raise HTTPException(status_code=404, detail="Player not found in room.")
 
+            from_yard = current_player.tokens[token_index] < 0
             move_summary = LudoLogic.move_token(room, player_id, token_index, room.dice_value)
             dice_value = room.dice_value
             room.dice_value = None
+            room.last_move = {
+                "player_id": player_id,
+                "token_index": token_index,
+                "from_yard": from_yard,
+                "captured_players": move_summary["captured_players"],
+                "finished": move_summary["finished"],
+                "dice_value": dice_value,
+            }
 
             if room.status == "finished":
                 room.message = f"{current_player.name} wins the game."
                 return self.serialize_room(room)
 
-            if dice_value == 6:
-                room.message = f"{current_player.name} rolled 6 and earned another turn."
+            earns_extra_turn = dice_value == 6 or bool(move_summary["captured_players"]) or move_summary["finished"]
+            if earns_extra_turn:
+                if move_summary["finished"]:
+                    room.message = f"{current_player.name} moved token {token_index + 1} to home and earned another turn."
+                elif move_summary["captured_players"]:
+                    captured = ", ".join(move_summary["captured_players"])
+                    room.message = (
+                        f"{current_player.name} moved token {token_index + 1} and captured {captured}. "
+                        "Roll again."
+                    )
+                else:
+                    room.message = f"{current_player.name} rolled 6 and earned another turn."
             else:
                 next_player = self._advance_turn(room)
                 room.message = f"{current_player.name} moved token {token_index + 1}. {next_player.name}'s turn."
 
-            if move_summary["captured_players"]:
-                captured = ", ".join(move_summary["captured_players"])
-                room.message = f"{room.message} Captured: {captured}."
-            elif move_summary["finished"]:
+            if move_summary["finished"] and not room.status == "finished":
                 room.message = f"{room.message} Token {token_index + 1} reached home."
 
             return self.serialize_room(room)

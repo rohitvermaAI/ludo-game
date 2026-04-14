@@ -3,6 +3,7 @@ import {
   BASES,
   BOARD_STEP,
   HOME_CELLS,
+  START_ENTRY_CELLS,
   START_YARDS,
   TRACK_CELLS,
   getBaseStyle,
