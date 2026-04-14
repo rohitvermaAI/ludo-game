@@ -184,6 +184,18 @@ function Base({ color, players, localPlayerId, currentTurn, validMoves, onMoveTo
   );
 }
 
+function NameBubble({ color, name }) {
+  return (
+    <div
+      className={`player-name-palette ${color}`}
+      title={name}
+    >
+      <span className="player-name-dot" />
+      <span className="player-name-text">{name}</span>
+    </div>
+  );
+}
+
 export default function Board({ players, currentTurn, localPlayerId, validMoves, onMoveToken }) {
   const [displayedCoordinates, setDisplayedCoordinates] = useState(() => createDisplayedCoordinates(players));
   const [displayedSteps, setDisplayedSteps] = useState(() => createDisplayedSteps(players));
@@ -319,8 +331,23 @@ export default function Board({ players, currentTurn, localPlayerId, validMoves,
   });
 
   return (
-    <section className="board-shell">
-      <div className="ludo-board-real">
+    <div className="board-frame">
+      <div className="board-label-row top">
+        {players.find((player) => player.color === "green") ? (
+          <NameBubble
+            color="green"
+            name={players.find((player) => player.color === "green").name}
+          />
+        ) : null}
+        {players.find((player) => player.color === "red") ? (
+          <NameBubble
+            color="red"
+            name={players.find((player) => player.color === "red").name}
+          />
+        ) : null}
+      </div>
+      <section className="board-shell">
+        <div className="ludo-board-real">
         {Object.keys(BASES).map((color) => (
           <Base
             key={color}
@@ -362,22 +389,37 @@ export default function Board({ players, currentTurn, localPlayerId, validMoves,
           />
         ))}
 
-        {Array.from(tokensByCell.entries()).flatMap(([key, tokens]) => {
-          const [x, y] = key.split("-").map(Number);
-          return tokens.map((token, index) => (
-            <button
-              key={`${token.playerId}-${token.tokenIndex}`}
-              type="button"
-              className={`token ${token.color} ${token.isClickable ? "clickable" : ""} ${token.isMoving ? "moving" : ""}`}
-              style={getTokenStyle({ x, y }, index, false)}
-              onClick={() => token.isClickable && onMoveToken(token.tokenIndex)}
-              title={`${token.color} token ${token.tokenIndex + 1}`}
-            >
-              <PinMarker className="token-marker" />
-            </button>
-          ));
-        })}
+          {Array.from(tokensByCell.entries()).flatMap(([key, tokens]) => {
+            const [x, y] = key.split("-").map(Number);
+            return tokens.map((token, index) => (
+              <button
+                key={`${token.playerId}-${token.tokenIndex}`}
+                type="button"
+                className={`token ${token.color} ${token.isClickable ? "clickable" : ""} ${token.isMoving ? "moving" : ""}`}
+                style={getTokenStyle({ x, y }, index, false)}
+                onClick={() => token.isClickable && onMoveToken(token.tokenIndex)}
+                title={`${token.color} token ${token.tokenIndex + 1}`}
+              >
+                <PinMarker className="token-marker" />
+              </button>
+            ));
+          })}
+        </div>
+      </section>
+      <div className="board-label-row bottom">
+        {players.find((player) => player.color === "blue") ? (
+          <NameBubble
+            color="blue"
+            name={players.find((player) => player.color === "blue").name}
+          />
+        ) : null}
+        {players.find((player) => player.color === "yellow") ? (
+          <NameBubble
+            color="yellow"
+            name={players.find((player) => player.color === "yellow").name}
+          />
+          ) : null}
       </div>
-    </section>
+    </div>
   );
 }
