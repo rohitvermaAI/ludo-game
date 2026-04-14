@@ -150,6 +150,8 @@ export default function GamePage() {
 
   const isMyTurn = gameState.current_turn === session.playerId;
   const canRoll = isMyTurn && gameState.dice_value === null && gameState.status === "playing";
+  const currentTurnPlayer = gameState.players.find((player) => player.id === gameState.current_turn);
+  const activeColor = currentTurnPlayer?.color;
 
   return (
     <main className="app-shell game-screen">
@@ -161,6 +163,7 @@ export default function GamePage() {
             localPlayerId={session.playerId}
             validMoves={gameState.valid_moves}
             onMoveToken={handleMoveToken}
+            activeColor={activeColor}
           />
 
           <Dice
